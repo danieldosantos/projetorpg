@@ -2,6 +2,22 @@
 
 Projeto de exemplo de salas para campanhas de RPG usando Blazor, EF Core e SignalR.
 
+## Ferramentas necessárias
+
+Para aplicar as migrações do Entity Framework Core é necessário ter a ferramenta de linha de comando `dotnet-ef` instalada.
+
+```bash
+dotnet tool install --global dotnet-ef
+```
+
+Se a ferramenta já estiver instalada, atualize-a:
+
+```bash
+dotnet tool update --global dotnet-ef
+```
+
+O comando `dotnet ef database update` utilizado na seção de execução depende dessa ferramenta.
+
 ## Execução
 
 Certifique-se de ter o .NET SDK 8.0 instalado. O projeto `RpgRooms.Core`
