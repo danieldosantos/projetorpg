@@ -7,7 +7,7 @@ public class CampaignService
 {
     public const int MaxPlayers = 50;
 
-    public void AddPlayer(Campaign campaign, User player)
+    public void AddPlayer(Campaign campaign, ApplicationUser player)
     {
         if (campaign.IsFinished)
             throw new InvalidOperationException("Campaign is finished.");
@@ -21,7 +21,7 @@ public class CampaignService
         campaign.Players.Add(player);
     }
 
-    public void FinalizeCampaign(Campaign campaign, User user)
+    public void FinalizeCampaign(Campaign campaign, ApplicationUser user)
     {
         if (campaign.GameMasterId != user.Id)
             throw new UnauthorizedAccessException("Only GM can finalize.");
