@@ -1,9 +1,13 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using RpgRooms.Infrastructure;
 
 #nullable disable
 
 namespace RpgRooms.Infrastructure.Migrations
 {
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20250828184840_Initial")]
     public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -85,3 +89,4 @@ namespace RpgRooms.Infrastructure.Migrations
         }
     }
 }
+

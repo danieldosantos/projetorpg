@@ -71,3 +71,4 @@ namespace RpgRooms.Infrastructure.Migrations
         }
     }
 }
+
