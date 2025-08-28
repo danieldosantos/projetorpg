@@ -20,8 +20,24 @@ public static class DataSeeder
             var admin = new ApplicationUser { UserName = "admin", IsGameMaster = true };
             await userManager.CreateAsync(admin, "admin");
 
-            var campaign = new Campaign { Name = "Sample Campaign", GameMasterId = admin.Id, GameMaster = admin };
+            var campaign = new Campaign
+            {
+                Name = "Sample Campaign",
+                Description = "Sample campaign",
+                OwnerUserId = admin.Id,
+                OwnerUser = admin,
+                Status = CampaignStatus.Active,
+                IsRecruiting = true,
+                MaxPlayers = 5,
+                CreatedAt = DateTime.UtcNow
+            };
             context.Campaigns.Add(campaign);
+            context.CampaignMembers.Add(new CampaignMember
+            {
+                Campaign = campaign,
+                User = admin,
+                UserId = admin.Id
+            });
 
             await context.SaveChangesAsync();
         }
