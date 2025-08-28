@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using RpgRooms.Core.Entities;
-using RpgRooms.Core.Policies;
+using RpgRooms.Infrastructure.Policies;
 using RpgRooms.Core.Services;
 using RpgRooms.Infrastructure;
 using RpgRooms.Web.Hubs;

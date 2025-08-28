@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using RpgRooms.Infrastructure;
 
-namespace RpgRooms.Core.Policies;
+namespace RpgRooms.Infrastructure.Policies;
 
 public class IsMemberOfCampaignRequirement : IAuthorizationRequirement { }
 
