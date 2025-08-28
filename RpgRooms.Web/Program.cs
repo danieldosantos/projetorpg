@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RpgRooms.Core.Entities;
 using RpgRooms.Core.Services;
+using RpgRooms.Core.Policies;
 using RpgRooms.Infrastructure;
 using RpgRooms.Web.Hubs;
 using System.Security.Claims;
@@ -28,11 +30,15 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<CampaignService>();
+builder.Services.AddScoped<IAuthorizationHandler, IsGmOfCampaignHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, IsMemberOfCampaignHandler>();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("IsGameMaster", policy => policy.RequireClaim("IsGameMaster", "True"));
+    options.AddPolicy("IsGmOfCampaign", policy => policy.Requirements.Add(new IsGmOfCampaignRequirement()));
+    options.AddPolicy("IsMemberOfCampaign", policy => policy.Requirements.Add(new IsMemberOfCampaignRequirement()));
 });
 
 var app = builder.Build();
@@ -118,7 +124,7 @@ app.MapPost("/api/campaigns/{id}/join-requests/{requestId}/approve", async (int 
     {
         return Results.BadRequest(new { error = ex.Message });
     }
-}).RequireAuthorization();
+}).RequireAuthorization("IsGmOfCampaign");
 
 app.MapPost("/api/campaigns/{id}/join-requests/{requestId}/reject", async (int id, int requestId, UserManager<ApplicationUser> userManager, CampaignService service, ApplicationDbContext db, ClaimsPrincipal principal) =>
 {
@@ -151,7 +157,7 @@ app.MapPost("/api/campaigns/{id}/join-requests/{requestId}/reject", async (int i
     {
         return Results.BadRequest(new { error = ex.Message });
     }
-}).RequireAuthorization();
+}).RequireAuthorization("IsGmOfCampaign");
 
 app.MapDelete("/api/campaigns/{id}/members/{userId}", async (int id, string userId, UserManager<ApplicationUser> userManager, CampaignService service, ApplicationDbContext db, ClaimsPrincipal principal) =>
 {
@@ -180,7 +186,7 @@ app.MapDelete("/api/campaigns/{id}/members/{userId}", async (int id, string user
     {
         return Results.BadRequest(new { error = ex.Message });
     }
-}).RequireAuthorization();
+}).RequireAuthorization("IsGmOfCampaign");
 
 app.MapPost("/api/campaigns/{id}/recruitment-toggle", async (int id, UserManager<ApplicationUser> userManager, CampaignService service, ApplicationDbContext db, ClaimsPrincipal principal) =>
 {
@@ -209,7 +215,7 @@ app.MapPost("/api/campaigns/{id}/recruitment-toggle", async (int id, UserManager
     {
         return Results.BadRequest(new { error = ex.Message });
     }
-}).RequireAuthorization();
+}).RequireAuthorization("IsGmOfCampaign");
 
 app.MapBlazorHub();
 app.MapHub<CampaignHub>("/campaignHub");
