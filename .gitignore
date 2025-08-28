@@ -1,0 +1,120 @@
+# ===== .NET / Build =====
+**/[Bb]in/
+**/[Oo]bj/
+**/out/
+artifacts/
+
+# Static Web Assets gerados
+**/obj/Release/net*/staticwebassets/
+**/obj/Debug/net*/staticwebassets/
+
+# ===== IDEs =====
+# Visual Studio
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / ReSharper
+.idea/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# VS Code (opcional ignorar configs locais)
+.vscode/
+
+# ===== SO / Arquivos temporários =====
+# Windows / macOS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporários
+*.tmp
+*.temp
+*.cache
+~$*
+
+# ===== Logs =====
+*.log
+logs/
+Log/
+
+# ===== Front-end / Node =====
+node_modules/
+**/node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Saídas de build front-end (se usar)
+dist/
+build/
+**/wwwroot/dist/
+**/wwwroot/build/
+**/wwwroot/*.map
+**/wwwroot/assets/*
+!**/wwwroot/**/.gitkeep
+
+# Turborepo / Next (se tiver algo web junto)
+.turbo/
+**/.turbo
+.next/
+
+# ===== Publicação / Empacotamento =====
+**/publish/
+**/AppPackages/
+*.pubxml
+*.publishproj
+*.pubxml.user
+*.nupkg
+*.snupkg
+
+# ===== Configuração / Segredos =====
+# ATENÇÃO: mantenha appsettings.json no repositório; use *.Development.json com cuidado.
+# Se usar variáveis de ambiente em arquivo:
+*.env
+.env*
+secrets.json
+
+# Certificados locais
+*.pfx
+*.p12
+*.cer
+*.key
+
+# ===== EF Core =====
+# Em geral, COMMITAR Migrations/ é recomendado.
+# Se NÃO quiser versionar (não recomendado), descomente a linha abaixo:
+# **/Migrations/
+
+# Bancos locais (SQLite/SQLCE)
+*.db
+*.db-shm
+*.db-wal
+app_data/
+**/rpgrooms.db
+
+# ===== Testes / Cobertura =====
+TestResult*/
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+*.testsettings
+.vshistory/
+
+# ===== Azure / Deploy =====
+PublishProfiles/
+*.azurePubxml
+.scm/
+
+# ===== Diversos =====
+project.lock.json
+project.fragment.lock.json
