@@ -12,7 +12,7 @@ else
     <ul>
         @foreach (var c in campaigns)
         {
-            <li><a href="/campaign/@c.Id">@c.Name (@c.Players.Count)</a></li>
+            <li><a href="/campaign/@c.Id">@c.Name (@c.Members.Count)</a></li>
         }
     </ul>
 }
@@ -22,6 +22,6 @@ else
 
     protected override void OnInitialized()
     {
-        campaigns = Db.Campaigns.Include(c => c.Players).ToList();
+        campaigns = Db.Campaigns.Include(c => c.Members).ToList();
     }
 }
