@@ -4,6 +4,10 @@ Projeto de exemplo de salas para campanhas de RPG usando Blazor, EF Core e Signa
 
 ## Execução
 
+Certifique-se de ter o .NET SDK 8.0 instalado. O projeto `RpgRooms.Core`
+depende do sistema de autorização do ASP.NET Core e inclui a referência ao
+pacote `Microsoft.AspNetCore.Authorization` para compilar corretamente.
+
 1. Restaure os pacotes:
    ```bash
    dotnet restore
