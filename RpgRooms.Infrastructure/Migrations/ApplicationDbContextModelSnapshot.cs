@@ -80,6 +80,7 @@ namespace RpgRooms.Infrastructure.Migrations
                 b.Property<int>("CampaignId");
                 b.Property<string>("UserId").IsRequired();
                 b.Property<string>("Action").IsRequired();
+                b.Property<string>("Data");
                 b.Property<DateTime>("CreatedAt");
                 b.HasKey("Id");
                 b.HasIndex("CampaignId");

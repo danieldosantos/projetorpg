@@ -10,5 +10,6 @@ public class AuditEntry
     public string UserId { get; set; } = string.Empty;
     public ApplicationUser? User { get; set; }
     public string Action { get; set; } = string.Empty;
+    public string? Data { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
