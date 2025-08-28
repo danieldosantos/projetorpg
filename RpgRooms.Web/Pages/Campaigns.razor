@@ -1,5 +1,6 @@
 @page "/campaigns"
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <h3>Campanhas</h3>
 
@@ -26,6 +27,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Http.BaseAddress ??= new Uri(Navigation.BaseUri);
         var result = await Http.GetFromJsonAsync<List<CampaignSummary>>("/api/campaigns");
         if (result is not null)
             campaigns = result;
