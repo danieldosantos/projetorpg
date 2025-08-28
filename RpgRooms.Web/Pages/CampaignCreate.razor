@@ -29,6 +29,11 @@
 @code {
     private CampaignCreateModel model = new();
 
+    protected override void OnInitialized()
+    {
+        Http.BaseAddress ??= new Uri(Navigation.BaseUri);
+    }
+
     private async Task HandleValidSubmit()
     {
         await Http.PostAsJsonAsync("/api/campaigns", model);

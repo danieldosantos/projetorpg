@@ -50,6 +50,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Http.BaseAddress ??= new Uri(Navigation.BaseUri);
         campaign = await Http.GetFromJsonAsync<CampaignDetailsDto>($"/api/campaigns/{id}");
         if (campaign is not null)
             messages = campaign.Chat.ToList();
