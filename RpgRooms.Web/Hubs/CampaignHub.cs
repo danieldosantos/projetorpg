@@ -1,24 +1,23 @@
 using System;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using RpgRooms.Core.Entities;
-using RpgRooms.Core.Services;
 using RpgRooms.Infrastructure;
 
 namespace RpgRooms.Web.Hubs;
 
 public class CampaignHub : Hub
 {
-    private readonly CampaignService _campaignService;
     private readonly ApplicationDbContext _db;
 
-    public CampaignHub(CampaignService campaignService, ApplicationDbContext db)
+    public CampaignHub(ApplicationDbContext db)
     {
-        _campaignService = campaignService;
         _db = db;
     }
 
+    [Authorize(Policy = "IsMemberOfCampaign")]
     public async Task JoinCampaignGroup(int campaignId)
     {
         var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -26,13 +25,9 @@ public class CampaignHub : Hub
             return;
 
         var campaign = await _db.Campaigns
-            .Include(c => c.Members)
             .FirstOrDefaultAsync(c => c.Id == campaignId);
 
         if (campaign is null || campaign.Status == CampaignStatus.Finalized)
-            return;
-
-        if (!_campaignService.IsMemberOfCampaign(campaign, userId))
             return;
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"campaign-{campaignId}");
@@ -49,6 +44,7 @@ public class CampaignHub : Hub
             .SendAsync("SystemNotice", $"{name} left the campaign.");
     }
 
+    [Authorize(Policy = "IsMemberOfCampaign")]
     public async Task SendMessage(int campaignId, string content, bool sentAsCharacter)
     {
         var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -56,7 +52,6 @@ public class CampaignHub : Hub
             return;
 
         var campaign = await _db.Campaigns
-            .Include(c => c.Members)
             .FirstOrDefaultAsync(c => c.Id == campaignId);
 
         if (campaign is null || campaign.Status == CampaignStatus.Finalized)
@@ -64,9 +59,6 @@ public class CampaignHub : Hub
             await Clients.Caller.SendAsync("SystemNotice", "Campaign has been finalized.");
             return;
         }
-
-        if (!_campaignService.IsMemberOfCampaign(campaign, userId))
-            return;
 
         var displayName = Context.User?.Identity?.Name ?? userId;
         if (sentAsCharacter)
