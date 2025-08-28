@@ -49,4 +49,26 @@ public class CampaignServiceTests
         Assert.Throws<InvalidOperationException>(() =>
             service.AddPlayer(campaign, new ApplicationUser { Id = "2" }));
     }
+
+    [Fact]
+    public void ApprovingRequestDisablesRecruitmentAt50()
+    {
+        var service = new CampaignService();
+        var owner = new ApplicationUser { Id = "1" };
+        var campaign = new Campaign { Id = 1, OwnerUserId = owner.Id, IsRecruiting = true, MaxPlayers = 50 };
+
+        for (int i = 0; i < 49; i++)
+        {
+            service.AddPlayer(campaign, new ApplicationUser { Id = (i + 2).ToString() });
+        }
+
+        var newUser = new ApplicationUser { Id = "100" };
+        var request = service.RequestToJoin(campaign, newUser, "let me in");
+
+        service.ApproveRequest(campaign, request, owner);
+
+        Assert.Equal(50, campaign.Members.Count);
+        Assert.False(campaign.IsRecruiting);
+        Assert.Equal(JoinRequestStatus.Approved, request.Status);
+    }
 }
