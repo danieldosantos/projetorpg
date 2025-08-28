@@ -1,0 +1,35 @@
+@using RpgRooms.Web.Models
+
+@if (Visible)
+{
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Entrar em @Campaign?.Name</h5>
+                    <button type="button" class="btn-close" @onclick="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" @bind="message" placeholder="Mensagem"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="Close">Cancelar</button>
+                    <button class="btn btn-primary" @onclick="Submit">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public CampaignSummary? Campaign { get; set; }
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnSubmit { get; set; }
+
+    private string message = string.Empty;
+
+    private Task Submit() => OnSubmit.InvokeAsync(message);
+    private Task Close() => OnClose.InvokeAsync();
+}

@@ -1,0 +1,62 @@
+@page "/campaigns"
+@inject HttpClient Http
+
+<h3>Campanhas</h3>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link @GetActive("all")" @onclick="() => SetTab("all")">Todas</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @GetActive("recruiting")" @onclick="() => SetTab("recruiting")">Recrutando</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @GetActive("active")" @onclick="() => SetTab("active")">Ativas</button>
+    </li>
+</ul>
+
+<CampaignList Campaigns="Filtered" OnJoin="OpenJoin" />
+<JoinRequestModal Campaign="selected" Visible="modalVisible" OnClose="CloseModal" OnSubmit="SendJoinRequest" />
+
+@code {
+    private List<CampaignSummary> campaigns = new();
+    private string activeTab = "all";
+    private CampaignSummary? selected;
+    private bool modalVisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Http.GetFromJsonAsync<List<CampaignSummary>>("/api/campaigns");
+        if (result is not null)
+            campaigns = result;
+    }
+
+    private IEnumerable<CampaignSummary> Filtered => activeTab switch
+    {
+        "recruiting" => campaigns.Where(c => c.IsRecruiting),
+        "active" => campaigns.Where(c => c.Status == CampaignStatus.Active),
+        _ => campaigns
+    };
+
+    private string GetActive(string tab) => tab == activeTab ? "active" : string.Empty;
+    private void SetTab(string tab) => activeTab = tab;
+
+    private void OpenJoin(int id)
+    {
+        selected = campaigns.FirstOrDefault(c => c.Id == id);
+        modalVisible = true;
+    }
+
+    private Task CloseModal()
+    {
+        modalVisible = false;
+        return Task.CompletedTask;
+    }
+
+    private async Task SendJoinRequest(string message)
+    {
+        if (selected is null) return;
+        await Http.PostAsJsonAsync($"/api/campaigns/{selected.Id}/join-requests", new { message });
+        modalVisible = false;
+    }
+}

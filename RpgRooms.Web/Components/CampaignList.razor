@@ -1,0 +1,18 @@
+@using RpgRooms.Web.Models
+
+@if (Campaigns.Any())
+{
+    @foreach (var c in Campaigns)
+    {
+        <CampaignCard Campaign="c" OnJoin="OnJoin" />
+    }
+}
+else
+{
+    <p>Nenhuma campanha encontrada.</p>
+}
+
+@code {
+    [Parameter] public IEnumerable<CampaignSummary> Campaigns { get; set; } = Enumerable.Empty<CampaignSummary>();
+    [Parameter] public EventCallback<int> OnJoin { get; set; }
+}
