@@ -6,6 +6,9 @@ namespace RpgRooms.Core.Services;
 
 public class CampaignService
 {
+    public bool IsMemberOfCampaign(Campaign campaign, string userId)
+        => campaign.Members.Any(m => m.UserId == userId);
+
     public void AddPlayer(Campaign campaign, ApplicationUser player)
     {
         if (campaign.Status == CampaignStatus.Finalized)

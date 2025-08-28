@@ -65,6 +65,7 @@ namespace RpgRooms.Infrastructure.Migrations
                 b.Property<int>("Id").ValueGeneratedOnAdd();
                 b.Property<int>("CampaignId");
                 b.Property<string>("UserId").IsRequired();
+                b.Property<string>("DisplayName").IsRequired();
                 b.Property<string>("Message").IsRequired();
                 b.Property<DateTime>("SentAt");
                 b.HasKey("Id");
