@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
-using RpgRooms.Infrastructure;
+using RpgRooms.Core.Entities;
 using RpgRooms.Core.Services;
+using RpgRooms.Infrastructure;
 using RpgRooms.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     if (provider == "SqlServer")
         options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection"));
 });
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<CampaignService>();
@@ -33,7 +38,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await DataSeeder.SeedAsync(db);
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    await DataSeeder.SeedAsync(db, userManager, app.Environment);
 }
 
 if (!app.Environment.IsDevelopment())
@@ -44,6 +50,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapHub<CampaignHub>("/campaignHub");

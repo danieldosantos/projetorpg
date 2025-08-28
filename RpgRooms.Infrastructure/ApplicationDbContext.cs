@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using RpgRooms.Core.Entities;
 
 namespace RpgRooms.Infrastructure;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
-    public DbSet<User> Users => Set<User>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Campaign>()
             .HasOne(c => c.GameMaster)
             .WithMany()
