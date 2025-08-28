@@ -30,6 +30,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<CampaignService>();
+builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<IAuthorizationHandler, IsGmOfCampaignHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, IsMemberOfCampaignHandler>();
 builder.Services.AddRazorPages();
@@ -148,7 +149,7 @@ app.MapPost("/api/campaigns/{id}/join-requests", async (int id, JoinRequestDto d
     }
 }).RequireAuthorization();
 
-app.MapPost("/api/campaigns/{id}/join-requests/{requestId}/approve", async (int id, int requestId, UserManager<ApplicationUser> userManager, CampaignService service, ApplicationDbContext db, ClaimsPrincipal principal) =>
+app.MapPost("/api/campaigns/{id}/join-requests/{requestId}/approve", async (int id, int requestId, UserManager<ApplicationUser> userManager, CampaignService service, AuditService audit, ApplicationDbContext db, ClaimsPrincipal principal) =>
 {
     var user = await userManager.GetUserAsync(principal);
     if (user is null)
@@ -170,6 +171,7 @@ app.MapPost("/api/campaigns/{id}/join-requests/{requestId}/approve", async (int 
     try
     {
         service.ApproveRequest(campaign, request, user);
+        await audit.LogAsync(campaign, user, "JoinRequestApproved", new { requestId });
         await db.SaveChangesAsync();
         return Results.Ok();
     }
@@ -216,7 +218,7 @@ app.MapPost("/api/campaigns/{id}/join-requests/{requestId}/reject", async (int i
     }
 }).RequireAuthorization("IsGmOfCampaign");
 
-app.MapDelete("/api/campaigns/{id}/members/{userId}", async (int id, string userId, UserManager<ApplicationUser> userManager, CampaignService service, ApplicationDbContext db, ClaimsPrincipal principal) =>
+app.MapDelete("/api/campaigns/{id}/members/{userId}", async (int id, string userId, UserManager<ApplicationUser> userManager, CampaignService service, AuditService audit, ApplicationDbContext db, ClaimsPrincipal principal) =>
 {
     var user = await userManager.GetUserAsync(principal);
     if (user is null)
@@ -232,6 +234,7 @@ app.MapDelete("/api/campaigns/{id}/members/{userId}", async (int id, string user
     try
     {
         service.RemoveMember(campaign, userId, user);
+        await audit.LogAsync(campaign, user, "MemberRemoved", new { removedUserId = userId });
         await db.SaveChangesAsync();
         return Results.Ok();
     }
@@ -245,7 +248,7 @@ app.MapDelete("/api/campaigns/{id}/members/{userId}", async (int id, string user
     }
 }).RequireAuthorization("IsGmOfCampaign");
 
-app.MapPost("/api/campaigns/{id}/recruitment-toggle", async (int id, UserManager<ApplicationUser> userManager, CampaignService service, ApplicationDbContext db, ClaimsPrincipal principal) =>
+app.MapPost("/api/campaigns/{id}/recruitment-toggle", async (int id, UserManager<ApplicationUser> userManager, CampaignService service, AuditService audit, ApplicationDbContext db, ClaimsPrincipal principal) =>
 {
     var user = await userManager.GetUserAsync(principal);
     if (user is null)
@@ -261,8 +264,36 @@ app.MapPost("/api/campaigns/{id}/recruitment-toggle", async (int id, UserManager
     try
     {
         service.ToggleRecruitment(campaign, user);
+        await audit.LogAsync(campaign, user, "ToggleRecruitment", new { campaign.IsRecruiting });
         await db.SaveChangesAsync();
         return Results.Ok(new { campaign.IsRecruiting });
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Results.Forbid();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+}).RequireAuthorization("IsGmOfCampaign");
+
+app.MapPost("/api/campaigns/{id}/finalize", async (int id, UserManager<ApplicationUser> userManager, CampaignService service, AuditService audit, ApplicationDbContext db, ClaimsPrincipal principal) =>
+{
+    var user = await userManager.GetUserAsync(principal);
+    if (user is null)
+        return Results.Unauthorized();
+
+    var campaign = await db.Campaigns.FirstOrDefaultAsync(c => c.Id == id);
+    if (campaign is null)
+        return Results.NotFound();
+
+    try
+    {
+        service.FinalizeCampaign(campaign, user);
+        await audit.LogAsync(campaign, user, "CampaignFinalized", new { });
+        await db.SaveChangesAsync();
+        return Results.Ok();
     }
     catch (UnauthorizedAccessException)
     {

@@ -44,6 +44,7 @@ namespace RpgRooms.Infrastructure.Migrations
                     CampaignId = table.Column<int>(nullable: false),
                     UserId = table.Column<string>(nullable: false),
                     Action = table.Column<string>(nullable: false),
+                    Data = table.Column<string>(nullable: true),
                     CreatedAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
