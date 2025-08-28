@@ -29,6 +29,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, IsGameMasterClaimsPrincipalFactory>();
+
 builder.Services.AddSignalR();
 builder.Services.AddScoped<CampaignService>();
 builder.Services.AddScoped<AuditService>();
