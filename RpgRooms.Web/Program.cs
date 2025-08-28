@@ -13,6 +13,7 @@ using RpgRooms.Infrastructure.Policies;
 using RpgRooms.Web.Hubs;
 using System.Security.Claims;
 using System.Linq;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -105,6 +106,10 @@ app.MapPost("/api/campaigns", async (CampaignCreateDto dto, UserManager<Applicat
     var user = await userManager.GetUserAsync(principal);
     if (user is null)
         return Results.Unauthorized();
+
+    var validationResults = new List<ValidationResult>();
+    if (!Validator.TryValidateObject(dto, new ValidationContext(dto), validationResults, true))
+        return Results.BadRequest(new { Error = validationResults.First().ErrorMessage });
 
     var campaign = new Campaign
     {
@@ -314,5 +319,5 @@ app.MapFallbackToPage("/_Host");
 
 app.Run();
 
-record CampaignCreateDto(string Name, string Description, int MaxPlayers, bool IsRecruiting);
+record CampaignCreateDto(string Name, string Description, [property: Range(1, 50)] int MaxPlayers, bool IsRecruiting);
 record JoinRequestDto(string Message);
