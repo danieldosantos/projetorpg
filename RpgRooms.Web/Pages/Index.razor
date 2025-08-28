@@ -1,0 +1,27 @@
+@page "/"
+@inject ApplicationDbContext Db
+
+<h3>Campaigns</h3>
+
+@if (campaigns is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var c in campaigns)
+        {
+            <li><a href="/campaign/@c.Id">@c.Name (@c.Players.Count)</a></li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Campaign>? campaigns;
+
+    protected override void OnInitialized()
+    {
+        campaigns = Db.Campaigns.Include(c => c.Players).ToList();
+    }
+}

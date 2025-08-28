@@ -1,0 +1,47 @@
+@page "/campaign/{id:int}"
+@inject ApplicationDbContext Db
+@inject RpgRooms.Core.Services.CampaignService Service
+
+<h3>@campaign?.Name</h3>
+
+@if (campaign is not null)
+{
+    <p>Players (@campaign.Players.Count):</p>
+    <ul>
+        @foreach (var p in campaign.Players)
+        {
+            <li>@p.UserName</li>
+        }
+    </ul>
+    @if (!campaign.IsFinished)
+    {
+        <button @onclick="Finalize">Finalize Campaign</button>
+    }
+    else
+    {
+        <p>Campaign finished.</p>
+    }
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Campaign? campaign;
+    private User? currentUser;
+
+    protected override void OnInitialized()
+    {
+        campaign = Db.Campaigns.Include(c => c.Players).FirstOrDefault(c => c.Id == id);
+        currentUser = Db.Users.FirstOrDefault(u => u.UserName == "admin");
+    }
+
+    private void Finalize()
+    {
+        if (campaign is null || currentUser is null) return;
+        try
+        {
+            Service.FinalizeCampaign(campaign, currentUser);
+            Db.SaveChanges();
+        }
+        catch { }
+    }
+}

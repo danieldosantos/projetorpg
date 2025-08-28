@@ -1,0 +1,16 @@
+@page "/"
+@namespace RpgRooms.Web.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>RpgRooms</title>
+</head>
+<body>
+    <app>
+        @(await Html.RenderComponentAsync<App>(RenderMode.Server))
+    </app>
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>
