@@ -15,7 +15,7 @@
     </ul>
     @if (!campaign.IsFinished)
     {
-        <button @onclick="Finalize">Finalize Campaign</button>
+        <button @onclick="FinalizeCampaign">Finalize Campaign</button>
     }
     else
     {
@@ -34,7 +34,7 @@
         currentUser = Db.Users.FirstOrDefault(u => u.UserName == "admin");
     }
 
-    private void Finalize()
+    private void FinalizeCampaign()
     {
         if (campaign is null || currentUser is null) return;
         try
