@@ -1,4 +1,5 @@
 using RpgRooms.Core.Entities;
+using System.Linq;
 
 namespace RpgRooms.Core.Services;
 

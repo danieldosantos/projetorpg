@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RpgRooms.Core.Entities;
+using System.Linq;
 
 namespace RpgRooms.Infrastructure;
 
