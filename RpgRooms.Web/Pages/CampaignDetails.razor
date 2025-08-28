@@ -1,47 +1,97 @@
 @page "/campaign/{id:int}"
-@inject ApplicationDbContext Db
-@inject RpgRooms.Core.Services.CampaignService Service
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
 
-<h3>@campaign?.Name</h3>
+<h3>@campaign?.Name <span class="badge bg-@StatusClass">@StatusText</span></h3>
 
-@if (campaign is not null)
+@if (campaign is null)
 {
-    <p>Players (@campaign.Members.Count):</p>
-    <ul>
+    <p>Carregando...</p>
+}
+else
+{
+    <p>Jogadores (@campaign.Members.Count):</p>
+    <ul class="list-group mb-3">
         @foreach (var m in campaign.Members)
         {
-            <li>@m.User?.UserName</li>
+            <li class="list-group-item">@m</li>
         }
     </ul>
-    @if (campaign.Status != CampaignStatus.Finalized)
-    {
-        <button @onclick="FinalizeCampaign">Finalize Campaign</button>
-    }
-    else
-    {
-        <p>Campaign finished.</p>
-    }
+
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-2" style="height:200px; overflow-y:auto;">
+                @foreach (var m in messages)
+                {
+                    <div>@m.DisplayName: @m.Message</div>
+                }
+            </div>
+            <div class="input-group">
+                <input class="form-control" @bind="newMessage" />
+                <button class="btn btn-primary" @onclick="SendMessage">Enviar</button>
+            </div>
+            <div class="form-check mt-2">
+                <InputCheckbox class="form-check-input" @bind-Value="sendAsCharacter" id="asChar" />
+                <label class="form-check-label" for="asChar">Enviar como Personagem</label>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
     [Parameter] public int id { get; set; }
-    private Campaign? campaign;
-    private ApplicationUser? currentUser;
+    private CampaignDetailsDto? campaign;
+    private List<ChatMessageDto> messages = new();
+    private HubConnection? hubConnection;
+    private string newMessage = string.Empty;
+    private bool sendAsCharacter;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        campaign = Db.Campaigns.Include(c => c.Members).ThenInclude(m => m.User).FirstOrDefault(c => c.Id == id);
-        currentUser = Db.Users.FirstOrDefault(u => u.UserName == "admin");
-    }
+        campaign = await Http.GetFromJsonAsync<CampaignDetailsDto>($"/api/campaigns/{id}");
+        if (campaign is not null)
+            messages = campaign.Chat.ToList();
 
-    private void FinalizeCampaign()
-    {
-        if (campaign is null || currentUser is null) return;
-        try
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/campaignHub"))
+            .Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, msg) =>
         {
-            Service.FinalizeCampaign(campaign, currentUser);
-            Db.SaveChanges();
-        }
-        catch { }
+            messages.Add(new ChatMessageDto { DisplayName = user, Message = msg });
+            InvokeAsync(StateHasChanged);
+        });
+        hubConnection.On<string>("SystemNotice", msg =>
+        {
+            messages.Add(new ChatMessageDto { DisplayName = "*", Message = msg });
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+        await hubConnection.SendAsync("JoinCampaignGroup", id);
     }
+
+    private async Task SendMessage()
+    {
+        if (hubConnection is null || string.IsNullOrWhiteSpace(newMessage))
+            return;
+        await hubConnection.SendAsync("SendMessage", id, newMessage, sendAsCharacter);
+        newMessage = string.Empty;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("LeaveCampaignGroup", id);
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    private string StatusClass => campaign?.Status == CampaignStatus.Finalized
+        ? "danger" : campaign?.IsRecruiting == true ? "success" : "secondary";
+    private string StatusText => campaign?.Status == CampaignStatus.Finalized
+        ? "Finalizada" : campaign?.IsRecruiting == true ? "Recrutando" : "Lotada";
 }

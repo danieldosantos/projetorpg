@@ -1,0 +1,44 @@
+@page "/campaigns/create"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Criar Campanha</h3>
+
+<EditForm Model="model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label class="form-label">Nome</label>
+        <InputText class="form-control" @bind-Value="model.Name" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Descrição</label>
+        <InputTextArea class="form-control" @bind-Value="model.Description" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Máx. Jogadores</label>
+        <InputNumber class="form-control" @bind-Value="model.MaxPlayers" />
+    </div>
+    <div class="form-check mb-3">
+        <InputCheckbox class="form-check-input" @bind-Value="model.IsRecruiting" id="recruiting" />
+        <label class="form-check-label" for="recruiting">Recrutando</label>
+    </div>
+    <button class="btn btn-primary" type="submit">Criar</button>
+</EditForm>
+
+@code {
+    private CampaignCreateModel model = new();
+
+    private async Task HandleValidSubmit()
+    {
+        await Http.PostAsJsonAsync("/api/campaigns", model);
+        Navigation.NavigateTo("/campaigns");
+    }
+
+    public class CampaignCreateModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int MaxPlayers { get; set; } = 5;
+        public bool IsRecruiting { get; set; } = true;
+    }
+}

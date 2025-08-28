@@ -1,0 +1,24 @@
+@using RpgRooms.Core.Entities
+@using RpgRooms.Web.Models
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">
+            @Campaign.Name
+            <span class="badge bg-@StatusClass">@StatusText</span>
+        </h5>
+        <p class="card-text">Jogadores: @Campaign.MemberCount/@Campaign.MaxPlayers</p>
+        <a class="btn btn-outline-primary" href="/campaign/@Campaign.Id">Detalhes</a>
+        <button class="btn btn-success ms-2" @onclick="() => OnJoin.InvokeAsync(Campaign.Id)">Entrar</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public CampaignSummary Campaign { get; set; } = new();
+    [Parameter] public EventCallback<int> OnJoin { get; set; }
+
+    private string StatusClass => Campaign.Status == CampaignStatus.Finalized
+        ? "danger" : Campaign.IsRecruiting ? "success" : "secondary";
+    private string StatusText => Campaign.Status == CampaignStatus.Finalized
+        ? "Finalizada" : Campaign.IsRecruiting ? "Recrutando" : "Lotada";
+}

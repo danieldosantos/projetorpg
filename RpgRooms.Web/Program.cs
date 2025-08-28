@@ -34,6 +34,7 @@ builder.Services.AddScoped<IAuthorizationHandler, IsGmOfCampaignHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, IsMemberOfCampaignHandler>();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddHttpClient();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("IsGameMaster", policy => policy.RequireClaim("IsGameMaster", "True"));
@@ -60,6 +61,62 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/api/campaigns", async (ApplicationDbContext db) =>
+    await db.Campaigns
+        .Include(c => c.Members)
+        .Select(c => new {
+            c.Id,
+            c.Name,
+            c.IsRecruiting,
+            c.Status,
+            c.MaxPlayers,
+            MemberCount = c.Members.Count
+        })
+        .ToListAsync());
+
+app.MapGet("/api/campaigns/{id}", async (int id, ApplicationDbContext db) =>
+{
+    var campaign = await db.Campaigns
+        .Include(c => c.Members).ThenInclude(m => m.User)
+        .Include(c => c.ChatMessages)
+        .FirstOrDefaultAsync(c => c.Id == id);
+    if (campaign is null)
+        return Results.NotFound();
+
+    return Results.Ok(new {
+        campaign.Id,
+        campaign.Name,
+        campaign.IsRecruiting,
+        campaign.Status,
+        Members = campaign.Members.Select(m => m.User!.UserName),
+        Chat = campaign.ChatMessages
+            .OrderBy(m => m.SentAt)
+            .Select(m => new { m.DisplayName, m.Message })
+    });
+});
+
+app.MapPost("/api/campaigns", async (CampaignCreateDto dto, UserManager<ApplicationUser> userManager, ApplicationDbContext db, ClaimsPrincipal principal) =>
+{
+    var user = await userManager.GetUserAsync(principal);
+    if (user is null)
+        return Results.Unauthorized();
+
+    var campaign = new Campaign
+    {
+        Name = dto.Name,
+        Description = dto.Description,
+        OwnerUserId = user.Id,
+        IsRecruiting = dto.IsRecruiting,
+        MaxPlayers = dto.MaxPlayers
+    };
+
+    db.Campaigns.Add(campaign);
+    db.CampaignMembers.Add(new CampaignMember { Campaign = campaign, UserId = user.Id });
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/campaigns/{campaign.Id}", new { campaign.Id });
+}).RequireAuthorization("IsGameMaster");
 
 app.MapPost("/api/campaigns/{id}/join-requests", async (int id, JoinRequestDto dto, UserManager<ApplicationUser> userManager, CampaignService service, ApplicationDbContext db, ClaimsPrincipal principal) =>
 {
@@ -223,4 +280,5 @@ app.MapFallbackToPage("/_Host");
 
 app.Run();
 
+record CampaignCreateDto(string Name, string Description, int MaxPlayers, bool IsRecruiting);
 record JoinRequestDto(string Message);
