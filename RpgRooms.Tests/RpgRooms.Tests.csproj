@@ -14,8 +14,12 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Include="Moq" Version="4.20.69" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\\RpgRooms.Core\\RpgRooms.Core.csproj" />
+    <ProjectReference Include="..\\RpgRooms.Infrastructure\\RpgRooms.Infrastructure.csproj" />
+    <ProjectReference Include="..\\RpgRooms.Web\\RpgRooms.Web.csproj" />
   </ItemGroup>
 </Project>
