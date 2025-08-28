@@ -21,10 +21,11 @@ var connection = builder.Configuration.GetConnectionString("DefaultConnection") 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlite(connection);
     var provider = builder.Configuration.GetValue<string>("DatabaseProvider");
     if (provider == "SqlServer")
         options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection"));
+    else
+        options.UseSqlite(connection);
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
